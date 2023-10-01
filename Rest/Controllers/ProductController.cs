@@ -1,0 +1,66 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Rest.Entities;
+using Rest.Repositories;
+
+namespace Rest.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductController : ControllerBase
+    {
+        private readonly IProductService productService;
+        public ProductController(IProductService productService) => this.productService = productService;
+
+        [HttpGet]
+        public async Task<List<ProductDetails>> Get()
+        {
+            return await productService.ProductListAsync();
+        }
+
+        [HttpGet("{productId:length(24)}")]
+        public async Task<ActionResult<ProductDetails>> Get(string productId)
+        {
+            var productDetails = await productService.GetProductDetailByIdAsync(productId);
+            if (productDetails is null)
+            {
+                return NotFound();
+            }
+            return productDetails;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post(ProductDetails productDetails)
+        {
+            await productService.AddProductAsync(productDetails);
+            return CreatedAtAction(nameof(Get), new
+            {
+                id = productDetails.Id,
+            }, productDetails);
+        }
+
+        [HttpPut("{productId:length(24)}")]
+        public async Task<IActionResult> Update(string productId, ProductDetails productDetails)
+        {
+            var productDetail = await productService.GetProductDetailByIdAsync(productId);
+            if (productDetail is null)
+            {
+                return NotFound();
+            }
+            productDetails.Id = productDetail.Id;
+            await productService.UpdateProductAsync(productId, productDetail);
+            return Ok();
+        }
+
+        [HttpDelete("{productId:length(24)}")]
+        public async Task<IActionResult> Delete(string productId)
+        {
+            var productDetails = await productService.GetProductDetailByIdAsync(productId);
+            if (productDetails is null)
+            {
+                return NotFound();
+            }
+            await productService.DeleteProductAsync(productId);
+            return Ok();
+        }
+    }
+}
