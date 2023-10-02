@@ -7,4 +7,5 @@
         public string ProductCollectionName { get; set; }
         public string UserCollectionName { get; set; }
     }
+
 }
