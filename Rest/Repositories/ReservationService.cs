@@ -41,5 +41,22 @@ namespace Rest.Repositories
         {
             await reservationCollection.DeleteOneAsync(x => x.Id == reservationId);
         }
+
+        public async Task<List<Reservation>> GetReservationsByUserIdAsync(string userId)
+        {
+            var reservations = await reservationCollection.Find(r => r.UserId == userId).ToListAsync();
+            return reservations;
+        }
+
+        public async Task<List<Reservation>> GetReservationsByStatusAsync(string status)
+        {
+         
+            var filter = Builders<Reservation>.Filter.Eq(x => x.ReservationStatus, status);
+            var reservations = await reservationCollection.Find(filter).ToListAsync();
+
+            return reservations;
+        }
+
+
     }
 }

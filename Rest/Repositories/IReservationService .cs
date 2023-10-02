@@ -10,5 +10,7 @@ namespace Rest.Repositories
         Task AddReservationAsync(Reservation reservation);
         Task UpdateReservationAsync(string reservationId, Reservation reservationDetails);
         Task DeleteReservationAsync(string reservationId);
+        Task<List<Reservation>> GetReservationsByUserIdAsync(string userId);
+        Task<List<Reservation>> GetReservationsByStatusAsync(string status);
     }
 }

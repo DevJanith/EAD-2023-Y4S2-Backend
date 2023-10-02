@@ -11,8 +11,9 @@ namespace Rest.Repositories
         Task UpdateScheduleAsync(string scheduleId, Schedule scheduleDetails);
         Task DeleteScheduleAsync(string scheduleId);
         Task AddReservationToScheduleAsync(string scheduleId, Reservation reservation);
-
         Task UpdateScheduleAsync(Schedule schedule);
+
+        Task<List<Schedule>> GetSchedulesByStatusAsync(string status);
     }
 
 }

@@ -78,6 +78,8 @@ namespace Rest.Repositories
                 throw new ReservedCountExceedsTotalSeatsException("Reserved Count exceeds available seat count.");
             }
 
+            reservation.ScheduleId = scheduleId;
+
             await reservationCollection.InsertOneAsync(reservation);
             var filter = Builders<Schedule>.Filter.Eq(x => x.Id, scheduleId);
             var update = Builders<Schedule>.Update.Push(x => x.reservations, reservation);
@@ -92,6 +94,15 @@ namespace Rest.Repositories
             var update = Builders<Schedule>.Update.Set(x => x.reservations, schedule.reservations);
 
             await scheduleCollection.UpdateOneAsync(filter, update);
+        }
+
+        public async Task<List<Schedule>> GetSchedulesByStatusAsync(string status)
+        {
+            // Assuming you have a collection of schedules named 'schedules'
+            var filter = Builders<Schedule>.Filter.Eq(x => x.Status, status);
+            var schedules = await scheduleCollection.Find(filter).ToListAsync();
+
+            return schedules;
         }
     }
 }

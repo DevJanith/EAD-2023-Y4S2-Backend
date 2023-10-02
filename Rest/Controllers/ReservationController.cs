@@ -164,6 +164,88 @@ namespace Rest.Controllers
                 // Handle any other unexpected exceptions
                 return StatusCode(500, "An error occurred while processing the request.");
             }
+
+        }
+
+
+
+
+        [HttpGet("getSchedulesByUserId/{userId}")]
+        public async Task<IActionResult> GetSchedulesByUserId(string userId)
+        {
+            try
+            {
+                // Find all reservations for the given user ID
+                var reservations = await reservationService.GetReservationsByUserIdAsync(userId);
+
+                // Extract schedule IDs from the reservations
+                var scheduleIds = reservations.Select(r => r.ScheduleId).Distinct().ToList();
+
+                // Retrieve schedules using the extracted schedule IDs
+                var schedules = new List<Schedule>();
+
+                foreach (var scheduleId in scheduleIds)
+                {
+                    var schedule = await scheduleService.GetScheduleDetailByIdAsync(scheduleId);
+                    if (schedule != null)
+                    {
+                        schedules.Add(schedule);
+                    }
+                }
+
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+
+        [HttpGet("getReservationsByUserId/{userId}")]
+        public async Task<IActionResult> GetReservationsByUserId(string userId)
+        {
+            try
+            {
+                // Call your reservation service to get reservations by user ID
+                var reservations = await reservationService.GetReservationsByUserIdAsync(userId);
+
+                if (reservations == null || reservations.Count == 0)
+                {
+                    return NotFound("No reservations found for the user.");
+                }
+
+                return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+
+        [HttpGet("getReservationsByStatus/{status}")]
+        public async Task<IActionResult> GetReservationsByStatus(string status)
+        {
+            try
+            {
+                // Call your reservation service to get reservations by status
+                var reservations = await reservationService.GetReservationsByStatusAsync(status);
+
+                if (reservations == null || reservations.Count == 0)
+                {
+                    return NotFound("No reservations found with the specified status.");
+                }
+
+                return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
         }
     }
 }
