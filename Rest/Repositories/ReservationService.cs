@@ -14,7 +14,7 @@ namespace Rest.Repositories
         {
             var mongoClient = new MongoClient(productDatabaseSettings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(productDatabaseSettings.Value.DatabaseName);
-            reservationCollection = mongoDatabase.GetCollection<Reservation>("Reservation");
+            reservationCollection = mongoDatabase.GetCollection<Reservation>(productDatabaseSettings.Value.ReservationCollectionName);
         }
 
         public async Task<List<Reservation>> ReservationListAsync()
