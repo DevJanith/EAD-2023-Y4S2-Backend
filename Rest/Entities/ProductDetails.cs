@@ -7,7 +7,6 @@ namespace Rest.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        [BsonIgnoreIfDefault]
         public string? Id { get; set; }
         [BsonElement("ProductName")]
         public string ProductName { get; set; }
