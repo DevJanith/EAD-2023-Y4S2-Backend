@@ -64,5 +64,27 @@ namespace Rest.Controllers
             await scheduleService.DeleteScheduleAsync(scheduleId);
             return Ok();
         }
+
+        [HttpGet("getSchedulesByStatus/{status}")]
+        public async Task<IActionResult> GetSchedulesByStatus(string status)
+        {
+            try
+            {
+                // Call your schedule service to get schedules by status
+                var schedules = await scheduleService.GetSchedulesByStatusAsync(status);
+
+                if (schedules == null || schedules.Count == 0)
+                {
+                    return NotFound("No schedules found with the specified status.");
+                }
+
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
     }
 }
