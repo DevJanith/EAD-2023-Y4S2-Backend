@@ -137,3 +137,15 @@ C:\Users\himashara\Documents\SLIIT\2 SEMESTER\EAD - SE4040\ASSIGNMENT\Backend\EA
 C:\Users\himashara\Documents\SLIIT\2 SEMESTER\EAD - SE4040\ASSIGNMENT\Backend\EAD-2023-Y4S2-Backend\Rest\obj\Debug\net7.0\Rest.csproj.CopyComplete
 C:\Users\himashara\Documents\SLIIT\2 SEMESTER\EAD - SE4040\ASSIGNMENT\Backend\EAD-2023-Y4S2-Backend\Rest\obj\Debug\net7.0\Rest.genruntimeconfig.cache
 C:\Users\himashara\Documents\SLIIT\2 SEMESTER\EAD - SE4040\ASSIGNMENT\Backend\EAD-2023-Y4S2-Backend\Rest\obj\Debug\net7.0\ref\Rest.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\package-lock.json
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\BCrypt.Net-Next.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\FluentValidation.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.Security.Permissions.dll
