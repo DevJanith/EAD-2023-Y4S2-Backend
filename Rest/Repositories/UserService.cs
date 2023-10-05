@@ -2,78 +2,430 @@
 using MongoDB.Driver;
 using Rest.Configurations;
 using Rest.Entities;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using BCrypt.Net;
+using FluentValidation;
+using FluentValidation.Results;
+using Rest.util;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Rest.Repositories
 {
     public class UserService : IUserService
     {
         private readonly IMongoCollection<UserDetails> userCollection;
+        private readonly JwtSettings jwtSettings;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public UserService(IOptions<ProductDBSettings> productDatabaseSettings)
+        public UserService(IOptions<ProductDBSettings> productDatabaseSettings, IOptions<JwtSettings> jwtSettings, IHttpContextAccessor httpContextAccessor)
         {
             var mongoClient = new MongoClient(productDatabaseSettings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(productDatabaseSettings.Value.DatabaseName);
             userCollection = mongoDatabase.GetCollection<UserDetails>(productDatabaseSettings.Value.UserCollectionName);
+            this.jwtSettings = jwtSettings.Value;
+            this.httpContextAccessor = httpContextAccessor;
         }
-
-        public async Task<List<UserDetails>> GetUserListAsync()
+        public async Task<(List<UserDetails> Users, int Total)> GetUsersAsync(int page, int perPage, string direction, Status? status, UserType? userType, bool? isActive)
         {
-            return await userCollection.Find(_ => true).ToListAsync();
-        }
+            try
+            {
+                // Validate the input parameters.
+                if (page <= 0 || perPage <= 0)
+                {
+                    throw new ArgumentException("Invalid page or perPage parameters.");
+                }
 
-        public async Task<UserDetails> GetUserDetailsByIdAsync(string userId)
-        {
-            return await userCollection.Find(x => x.Id == userId).FirstOrDefaultAsync();
-        }
+                var filterBuilder = Builders<UserDetails>.Filter;
+                var filters = new List<FilterDefinition<UserDetails>>();
 
+                // Add filters based on the provided criteria.
+                if (status.HasValue)
+                {
+                    filters.Add(filterBuilder.Eq(u => u.Status, status.Value));
+                }
+
+                if (userType.HasValue)
+                {
+                    filters.Add(filterBuilder.Eq(u => u.UserType, userType.Value));
+                }
+
+                if (isActive.HasValue)
+                {
+                    filters.Add(filterBuilder.Eq(u => u.IsActive, isActive.Value));
+                }
+
+                // Initialize the filter with a default filter if no specific filters are added.
+                FilterDefinition<UserDetails> filter = filterBuilder.Empty;
+
+                if (filters.Count > 0)
+                {
+                    filter = filterBuilder.And(filters);
+                }
+
+                var sortBuilder = Builders<UserDetails>.Sort;
+                var sort = direction.ToLowerInvariant() == "asc"
+                    ? sortBuilder.Ascending(u => u.Id)
+                    : sortBuilder.Descending(u => u.Id);
+
+                var total = await userCollection.CountDocumentsAsync(filter);
+                var users = await userCollection
+                    .Find(filter)
+                    .Sort(sort)
+                    .Skip((page - 1) * perPage)
+                    .Limit(perPage)
+                    .ToListAsync();
+
+                return (users, (int)total);
+            }
+            catch (ArgumentException ex)
+            {
+                // Handle invalid input arguments.
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
         public async Task CreateUserAsync(UserDetails userDetails)
         {
-            // Default user status should be "deactivated."
-            userDetails.Status = "1";
-            userDetails.IsActive = false;
-            userDetails.ActivationStatus = "1";
+            try
+            {
+                // Validate the user details using FluentValidation.
+                var validator = new UserDetailsValidator();
+                FluentValidation.Results.ValidationResult validationResult = validator.Validate(userDetails);
 
-            // Set created and updated timestamps.
-            userDetails.CreatedOn = DateTime.UtcNow;
-            userDetails.UpdatedOn = userDetails.CreatedOn;
+                if (!validationResult.IsValid)
+                {
+                    // Handle validation errors and return appropriate responses.
+                    throw new FluentValidation.ValidationException(validationResult.Errors);
+                }
 
-            await userCollection.InsertOneAsync(userDetails);
+                // Check if NIC (used as email) is unique before creating the user.
+                if (await IsNicUnique(userDetails.NIC))
+                {
+                    // Check if the email is unique.
+                    if (await IsEmailUnique(userDetails.Email))
+                    {
+                        // Encrypt the password before storing it.
+                        userDetails.Password = BCrypt.Net.BCrypt.HashPassword(userDetails.Password);
+
+                        // Implement user creation logic here.
+                        await userCollection.InsertOneAsync(userDetails);
+                    }
+                    else
+                    {
+                        // Handle the case where the email is not unique.
+                        // Return an appropriate response indicating the duplication.
+                        throw new Exception("Email is not unique.");
+                    }
+                }
+                else
+                {
+                    // Handle the case where NIC is not unique.
+                    // Return an appropriate response indicating the duplication.
+                    throw new Exception("NIC is not unique.");
+                }
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                // Handle validation errors and return appropriate responses.
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
         }
-
         public async Task UpdateUserAsync(string userId, UserDetails userDetails)
         {
-            // Ensure that user ID is not modified during update.
-            userDetails.Id = userId;
+            try
+            {
+                // Validate the user details using FluentValidation.
+                var validator = new UserDetailsValidator();
+                FluentValidation.Results.ValidationResult validationResult = await validator.ValidateAsync(userDetails);
 
-            // Set updated timestamp.
-            userDetails.UpdatedOn = DateTime.UtcNow;
+                if (!validationResult.IsValid)
+                {
+                    // Handle validation errors and return appropriate responses.
+                    throw new FluentValidation.ValidationException(validationResult.Errors);
+                }
 
-            await userCollection.ReplaceOneAsync(x => x.Id == userId, userDetails);
+                // Ensure that user ID is not modified during update.
+                userDetails.Id = userId;
+
+                // Set updated timestamp.
+                userDetails.UpdatedOn = DateTime.UtcNow;
+
+                // Check if NIC (used as email) is unique before updating the user.
+                if (await IsNicUniqueForUpdate(userId, userDetails.NIC))
+                {
+                    // Check if the email is unique before updating the user.
+                    if (await IsEmailUniqueForUpdate(userId, userDetails.Email))
+                    {
+                        // Implement user update logic here.
+                        await userCollection.ReplaceOneAsync(x => x.Id == userId, userDetails);
+                    }
+                    else
+                    {
+                        // Handle the case where the email is not unique.
+                        // Return an appropriate response indicating the duplication.
+                        throw new Exception("Email is not unique.");
+                    }
+                }
+                else
+                {
+                    // Handle the case where NIC is not unique.
+                    // Return an appropriate response indicating the duplication.
+                    throw new Exception("NIC is not unique.");
+                }
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                // Handle validation errors and return appropriate responses.
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
         }
-
         public async Task DeleteUserAsync(string userId)
         {
-            await userCollection.DeleteOneAsync(x => x.Id == userId);
+            try
+            {
+                // Check if the user with the specified ID exists.
+                var existingUser = await userCollection.Find(x => x.Id == userId).FirstOrDefaultAsync();
+                if (existingUser == null)
+                {
+                    // Handle the case where the user does not exist.
+                    // Return an appropriate response indicating that the user was not found.
+                    throw new Exception("User not found.");
+                }
+
+                // Implement user deletion logic here.
+                await userCollection.DeleteOneAsync(x => x.Id == userId);
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        public async Task<UserDetails?> GetUserDetailsByIdAsync(string userId)
+        {
+            try
+            {
+                var existingUser = await userCollection.Find(x => x.Id == userId).FirstOrDefaultAsync();
+                return existingUser;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        public async Task<string> SignInAsync(string nic, string password)
+        {
+            try
+            {
+                // Check if a user with the given NIC exists.
+                var existingUser = await userCollection.Find(x => x.NIC == nic).FirstOrDefaultAsync();
+                if (existingUser == null)
+                {
+                    // Handle the case where the user does not exist.
+                    // Return an appropriate response indicating that the user was not found.
+                    throw new Exception("User not found.");
+                }
+
+                // Verify the password using BCrypt.
+                if (!BCrypt.Net.BCrypt.Verify(password, existingUser.Password))
+                {
+                    // Handle the case where the password is incorrect.
+                    // Return an appropriate response indicating authentication failure.
+                    throw new Exception("Authentication failed. Incorrect password.");
+                }
+
+                // Create claims for the JWT token.
+                var claims = new[]
+                {
+            new Claim(ClaimTypes.NameIdentifier, existingUser.Id),
+            new Claim(ClaimTypes.Name, existingUser.NIC),
+            // Add other claims as needed for authorization.
+        };
+
+                // Create a security key and sign the token.
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret));
+                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    jwtSettings.Issuer,
+                    jwtSettings.Audience,
+                    claims,
+                    expires: DateTime.UtcNow.AddMinutes(jwtSettings.ExpirationInMinutes),
+                    signingCredentials: credentials
+                );
+
+                // Serialize the token to a string.
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+                return tokenString;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        public async Task SignUpAsync(UserDetails userDetails)
+        {
+            try
+            {
+                // Validate the user details using FluentValidation.
+                var validator = new UserDetailsValidator();
+                FluentValidation.Results.ValidationResult validationResult = validator.Validate(userDetails);
+
+                if (!validationResult.IsValid)
+                {
+                    // Handle validation errors and return appropriate responses.
+                    throw new FluentValidation.ValidationException(validationResult.Errors);
+                }
+
+                // Check if NIC (used as email) is unique before creating the user.
+                if (await IsNicUnique(userDetails.NIC))
+                {
+                    // Check if the email is unique.
+                    if (await IsEmailUnique(userDetails.Email))
+                    {
+                        // Encrypt the password before storing it.
+                        userDetails.Password = BCrypt.Net.BCrypt.HashPassword(userDetails.Password);
+
+                        // Implement user creation logic here.
+                        await userCollection.InsertOneAsync(userDetails);
+                    }
+                    else
+                    {
+                        // Handle the case where the email is not unique.
+                        // Return an appropriate response indicating the duplication.
+                        throw new Exception("Email is not unique.");
+                    }
+                }
+                else
+                {
+                    // Handle the case where NIC is not unique.
+                    // Return an appropriate response indicating the duplication.
+                    throw new Exception("NIC is not unique.");
+                }
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                // Handle validation errors and return appropriate responses.
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        public UserDetails GetLoggedInUser()
+        {
+            try
+            {
+                // Retrieve the current HTTP context and user identity.
+                var httpContext = httpContextAccessor.HttpContext;
+                var user = httpContext?.User;
+
+                // Check if the user is authenticated.
+                if (user != null && user.Identity.IsAuthenticated)
+                {
+                    // Retrieve the user's NIC (used as email) from the claims.
+                    var nicClaim = user.FindFirst(ClaimTypes.Name);
+
+                    if (nicClaim != null)
+                    {
+                        var nic = nicClaim.Value;
+
+                        // Query the database to get the user based on NIC (email).
+                        var existingUser = userCollection.Find(x => x.NIC == nic).FirstOrDefault();
+
+                        if (existingUser != null)
+                        {
+                            // Return the user details.
+                            return existingUser;
+                        }
+                    }
+                }
+
+                // Handle the case where the user is not authenticated or not found.
+                throw new Exception("User not authenticated or not found.");
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
         }
 
-        public async Task ActivateUserAsync(string userId)
+        private async Task<bool> IsNicUnique(string nic)
         {
-            // Activate the user.
-            var update = Builders<UserDetails>.Update
-                .Set(x => x.IsActive, true)
-                .Set(x => x.Status, "3") // Set status to "approve"
-                .Set(x => x.ActivationStatus, "1"); // Set activation status to "1" (activated)
-
-            await userCollection.UpdateOneAsync(x => x.Id == userId, update);
+            try
+            {
+                var existingUser = await userCollection.Find(x => x.NIC == nic).FirstOrDefaultAsync();
+                return existingUser == null;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return appropriate responses.
+                throw ex;
+            }
         }
-
-        public async Task RequestDeactivationAsync(string userId)
+        private async Task<bool> IsEmailUnique(string email)
         {
-            // Send a deactivation request to the back office.
-            var update = Builders<UserDetails>.Update
-                .Set(x => x.ActivationStatus, "2"); // Set activation status to "2" (deactivation requested)
-
-            await userCollection.UpdateOneAsync(x => x.Id == userId, update);
+            try
+            {
+                var existingUser = await userCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+                return existingUser == null;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        private async Task<bool> IsNicUniqueForUpdate(string userId, string nic)
+        {
+            try
+            {
+                var existingUser = await userCollection.Find(x => x.Id != userId && x.NIC == nic).FirstOrDefaultAsync();
+                return existingUser == null;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+        private async Task<bool> IsEmailUniqueForUpdate(string userId, string email)
+        {
+            try
+            {
+                var existingUser = await userCollection.Find(x => x.Id != userId && x.Email == email).FirstOrDefaultAsync();
+                return existingUser == null;
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions and return appropriate responses.
+                throw ex;
+            }
         }
     }
 }
