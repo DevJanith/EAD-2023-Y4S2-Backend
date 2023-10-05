@@ -12,6 +12,8 @@ namespace Rest.Models
         public string TrainNumber { get; set; }
         public string AllocatedDriver { get; set; } 
         public string AllocatedGuard { get; set; }
+        public string Status { get; set; } // ACTIVE, INACTIVE
+        public string PublishStatus { get; set; } // PUBLISHED. UNPUBLISHED
         public int TotalSeats { get; set; }
       
     }

@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\Rest",
+    "\\Rest\\Controllers"
   ],
-  "SelectedNode": "\\Rest",
   "PreviewInSolutionExplorer": false
 }

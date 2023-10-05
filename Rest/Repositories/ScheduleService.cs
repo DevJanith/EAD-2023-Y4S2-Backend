@@ -9,12 +9,28 @@ namespace Rest.Repositories
     public class ScheduleService : IScheduleService
     {
         private readonly IMongoCollection<Schedule> scheduleCollection;
+        private readonly IMongoCollection<Reservation> reservationCollection;
+
+        public class ReservedCountExceedsTotalSeatsException : Exception
+        {
+            public ReservedCountExceedsTotalSeatsException(string message) : base(message)
+            {
+            }
+        }
+
+        public class ScheduleNotFoundException : Exception
+        {
+            public ScheduleNotFoundException(string message) : base(message)
+            {
+            }
+        }
 
         public ScheduleService(IOptions<ProductDBSettings> productDatabaseSettings)
         {
             var mongoClient = new MongoClient(productDatabaseSettings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(productDatabaseSettings.Value.DatabaseName);
-            scheduleCollection = mongoDatabase.GetCollection<Schedule>("Schedule");
+            scheduleCollection = mongoDatabase.GetCollection<Schedule>(productDatabaseSettings.Value.ScheduleCollectionName);
+            reservationCollection = mongoDatabase.GetCollection<Reservation>(productDatabaseSettings.Value.ReservationCollectionName);
         }
 
         public async Task<List<Schedule>> ScheduleListAsync()
@@ -40,6 +56,53 @@ namespace Rest.Repositories
         public async Task DeleteScheduleAsync(string scheduleId)
         {
             await scheduleCollection.DeleteOneAsync(x => x.Id == scheduleId);
+        }
+
+       
+
+        public async Task AddReservationToScheduleAsync(string scheduleId, Reservation reservation)
+        {
+            var existingSchedule = await scheduleCollection.Find(x => x.Id == scheduleId).FirstOrDefaultAsync();
+            if (existingSchedule == null)
+            {
+                // Schedule not found
+                throw new ScheduleNotFoundException("Schedule not found.");
+            }
+
+            var totalSeats = existingSchedule.train?.TotalSeats ?? 0;
+            var reservedCount = existingSchedule.reservations?.Sum(r => r.ReservedCount) ?? 0;
+
+            if (reservedCount + reservation.ReservedCount > totalSeats)
+            {
+                // Error: ReservedCount exceeds TotalSeats
+                throw new ReservedCountExceedsTotalSeatsException("Reserved Count exceeds available seat count.");
+            }
+
+            reservation.ScheduleId = scheduleId;
+
+            await reservationCollection.InsertOneAsync(reservation);
+            var filter = Builders<Schedule>.Filter.Eq(x => x.Id, scheduleId);
+            var update = Builders<Schedule>.Update.Push(x => x.reservations, reservation);
+
+            await scheduleCollection.UpdateOneAsync(filter, update);
+        }
+
+
+        public async Task UpdateScheduleAsync(Schedule schedule)
+        {
+            var filter = Builders<Schedule>.Filter.Eq(x => x.Id, schedule.Id);
+            var update = Builders<Schedule>.Update.Set(x => x.reservations, schedule.reservations);
+
+            await scheduleCollection.UpdateOneAsync(filter, update);
+        }
+
+        public async Task<List<Schedule>> GetSchedulesByStatusAsync(string status)
+        {
+            // Assuming you have a collection of schedules named 'schedules'
+            var filter = Builders<Schedule>.Filter.Eq(x => x.Status, status);
+            var schedules = await scheduleCollection.Find(filter).ToListAsync();
+
+            return schedules;
         }
     }
 }

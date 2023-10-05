@@ -10,10 +10,12 @@ namespace Rest.Controllers
     public class ScheduleController : ControllerBase
     {
         private readonly IScheduleService scheduleService;
+        private readonly ITrainService trainService;
 
-        public ScheduleController(IScheduleService scheduleService)
+        public ScheduleController(IScheduleService scheduleService, ITrainService trainService)
         {
             this.scheduleService = scheduleService;
+            this.trainService = trainService;
         }
 
         [HttpGet]
@@ -64,5 +66,69 @@ namespace Rest.Controllers
             await scheduleService.DeleteScheduleAsync(scheduleId);
             return Ok();
         }
+
+        [HttpGet("getSchedulesByStatus/{status}")]
+        public async Task<IActionResult> GetSchedulesByStatus(string status)
+        {
+            try
+            {
+                // Call your schedule service to get schedules by status
+                var schedules = await scheduleService.GetSchedulesByStatusAsync(status);
+
+                if (schedules == null || schedules.Count == 0)
+                {
+                    return NotFound("No schedules found with the specified status.");
+                }
+
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+        [HttpPost("addTrainToSchedule/{scheduleId:length(24)}/{trainId:length(24)}")]
+        public async Task<IActionResult> AddTrainToSchedule(string scheduleId, string trainId)
+        {
+            try
+            {
+                // Check if the schedule with the given ID exists
+                var existingSchedule = await scheduleService.GetScheduleDetailByIdAsync(scheduleId);
+                if (existingSchedule == null)
+                {
+                    return NotFound("Schedule not found.");
+                }
+
+                // Check if the train with the given ID exists
+                var existingTrain = await trainService.GetTrainDetailByIdAsync(trainId);
+                if (existingTrain == null)
+                {
+                    return NotFound("Train not found.");
+                }
+
+                // Check if the train is active and published
+                if (existingTrain.Status != "ACTIVE" || existingTrain.PublishStatus != "PUBLISHED")
+                {
+                    return BadRequest("The train must be ACTIVE and PUBLISHED to be added to the schedule.");
+                }
+
+                existingSchedule.train = existingTrain;
+
+                // Update the schedule in the database
+                await scheduleService.UpdateScheduleAsync(scheduleId, existingSchedule);
+
+                return Ok("Train added to schedule successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+
+
     }
 }

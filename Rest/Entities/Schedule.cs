@@ -14,6 +14,7 @@ namespace Rest.Models
         public DateTime StartDatetime { get; set; }
         public DateTime EndDatetime { get; set; }
         public decimal TicketPrice { get; set; }
+        public string Status { get; set; } // "ACTIVE, CANCELLED,",
         public Train? train { get; set; }
         public List<Reservation>? reservations { get; set; }
 

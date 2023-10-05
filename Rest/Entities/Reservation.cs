@@ -18,6 +18,7 @@ namespace Rest.Models
         public DateTime ReservationDate { get; set; }
         public string ReservationStatus { get; set; }  // "PENDING, RESERVED, CANCELLED",
         public decimal Amount { get; set; }
+        public string? ScheduleId { get; set; }
 
     }
 }
