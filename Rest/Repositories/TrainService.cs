@@ -14,7 +14,7 @@ namespace Rest.Repositories
         {
             var mongoClient = new MongoClient(productDatabasSettings.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(productDatabasSettings.Value.DatabaseName);
-            trainCollection = mongoDatabase.GetCollection<Train>("Train");
+            trainCollection = mongoDatabase.GetCollection<Train>(productDatabasSettings.Value.TrainCollectionName);
         }
 
         public async Task<List<Train>> TrainListAsync()

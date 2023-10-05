@@ -18,7 +18,7 @@ namespace Rest.Controllers
             return await trainService.TrainListAsync();
         }
 
-        [HttpGet("{productId:length(24)}")]
+        [HttpGet("{trainId:length(24)}")]
         public async Task<ActionResult<Train>> Get(string trainId)
         {
             var trainDetails = await trainService.GetTrainDetailByIdAsync(trainId);
@@ -39,7 +39,7 @@ namespace Rest.Controllers
             }, trainDetails);
         }
 
-        [HttpPut("{productId:length(24)}")]
+        [HttpPut("{trainId:length(24)}")]
         public async Task<IActionResult> Update(string trainId, Train trainDetails)
         {
             var trainDetail = await trainService.GetTrainDetailByIdAsync(trainId);
@@ -52,7 +52,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
-        [HttpDelete("{productId:length(24)}")]
+        [HttpDelete("{trainId:length(24)}")]
         public async Task<IActionResult> Delete(string trainId)
         {
             var trainDetail = await trainService.GetTrainDetailByIdAsync(trainId);
