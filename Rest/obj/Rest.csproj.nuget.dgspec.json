@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {}
+    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\Rest.csproj": {}
   },
   "projects": {
-    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {
+    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\Rest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
+        "projectUniqueName": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\Rest.csproj",
         "projectName": "Rest",
-        "projectPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
+        "projectPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\Rest.csproj",
         "packagesPath": "C:\\Users\\JanithGamage\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\obj\\",
+        "outputPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

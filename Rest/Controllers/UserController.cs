@@ -29,15 +29,15 @@ namespace Rest.Controllers
                     Users = users,
                     Total = total
                 };
-                return Ok(result);
+                return Ok(result); // 200 OK
             }
             catch (ArgumentException ex)
             {
-                return BadRequest($"Invalid argument: {ex.Message}");
+                return BadRequest(new { Error = "Invalid argument", Message = ex.Message }); // 400 Bad Request
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -48,15 +48,15 @@ namespace Rest.Controllers
             try
             {
                 await userService.CreateUserAsync(userDetails);
-                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails);
+                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails); // 201 Created
             }
             catch (FluentValidation.ValidationException ex)
             {
-                return BadRequest(ex.Errors);
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -69,13 +69,13 @@ namespace Rest.Controllers
                 var userDetails = await userService.GetUserDetailsByIdAsync(userId);
                 if (userDetails == null)
                 {
-                    return NotFound();
+                    return NotFound(); // 404 Not Found
                 }
-                return Ok(userDetails);
+                return Ok(userDetails); // 200 OK
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -85,16 +85,16 @@ namespace Rest.Controllers
         {
             try
             {
-                await userService.UpdateUserAsync(userId, userDetails);
-                return Ok();
+                var updatedUser = await userService.UpdateUserAsync(userId, userDetails);
+                return Ok(updatedUser);// Return the updated user data with a 200 OK status code
             }
             catch (FluentValidation.ValidationException ex)
             {
-                return BadRequest(ex.Errors);
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -104,14 +104,20 @@ namespace Rest.Controllers
         {
             try
             {
-                await userService.DeleteUserAsync(userId);
-                return Ok();
+                var deleteMessage = await userService.DeleteUserAsync(userId);
+                if (deleteMessage == "User not found.")
+                {
+                    return NotFound(new { Error = "User not found", Message = "The user to be deleted was not found." }); // 404 Not Found
+                }
+
+                return Ok(new { Message = deleteMessage }); // 200 OK with a custom message
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
+
 
         // POST: api/User/SignIn
         [HttpPost("SignIn")]
@@ -119,16 +125,17 @@ namespace Rest.Controllers
         {
             try
             {
-                var token = await userService.SignInAsync(nic, password);
+                var (token, userDetails) = await userService.SignInAsync(nic, password);
                 if (token == null)
                 {
-                    return Unauthorized("Authentication failed.");
+                    return Unauthorized(new { Error = "Authentication failed", Message = "Invalid NIC or password" }); // 401 Unauthorized
                 }
-                return Ok(token);
+
+                return Ok(new { Token = token, UserDetails = userDetails }); // 200 OK with token and user details
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -139,15 +146,15 @@ namespace Rest.Controllers
             try
             {
                 await userService.SignUpAsync(userDetails);
-                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails);
+                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails); // 201 Created
             }
             catch (FluentValidation.ValidationException ex)
             {
-                return BadRequest(ex.Errors);
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
 
@@ -160,14 +167,15 @@ namespace Rest.Controllers
                 var loggedInUser = userService.GetLoggedInUser();
                 if (loggedInUser == null)
                 {
-                    return Unauthorized("User not authenticated or not found.");
+                    return Unauthorized(new { Error = "Authentication failed", Message = "User not authenticated or not found" }); // 401 Unauthorized
                 }
-                return Ok(loggedInUser);
+                return Ok(loggedInUser); // 200 OK
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
         }
+
     }
 }
