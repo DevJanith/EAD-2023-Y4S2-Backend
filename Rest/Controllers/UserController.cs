@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Rest.Entities;
 using Rest.Repositories;
+using System;
+using System.Threading.Tasks;
 
 namespace Rest.Controllers
 {
@@ -15,67 +17,165 @@ namespace Rest.Controllers
             this.userService = userService;
         }
 
+        // GET: api/User
         [HttpGet]
-        public async Task<List<UserDetails>> Get()
+        public async Task<IActionResult> GetUsersAsync(int page, int perPage, string direction, Status? status, UserType? userType, bool? isActive)
         {
-            return await userService.GetUserListAsync();
-        }
-
-        [HttpGet("{userId:length(24)}")]
-        public async Task<ActionResult<UserDetails>> Get(string userId)
-        {
-            var userDetails = await userService.GetUserDetailsByIdAsync(userId);
-            if (userDetails is null)
+            try
             {
-                return NotFound();
+                var (users, total) = await userService.GetUsersAsync(page, perPage, direction, status, userType, isActive);
+                var result = new
+                {
+                    Users = users,
+                    Total = total
+                };
+                return Ok(result); // 200 OK
             }
-            return userDetails;
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Error = "Invalid argument", Message = ex.Message }); // 400 Bad Request
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
 
+        // POST: api/User
         [HttpPost]
-        public async Task<IActionResult> Post(UserDetails userDetails)
+        public async Task<IActionResult> CreateUserAsync(UserDetails userDetails)
         {
-            await userService.CreateUserAsync(userDetails);
-            return CreatedAtAction(nameof(Get), new { id = userDetails.Id }, userDetails);
+            try
+            {
+                await userService.CreateUserAsync(userDetails);
+                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails); // 201 Created
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
 
+        // GET: api/User/{userId}
+        [HttpGet("{userId:length(24)}")]
+        public async Task<IActionResult> GetUserById(string userId)
+        {
+            try
+            {
+                var userDetails = await userService.GetUserDetailsByIdAsync(userId);
+                if (userDetails == null)
+                {
+                    return NotFound(); // 404 Not Found
+                }
+                return Ok(userDetails); // 200 OK
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
+        }
+
+        // PUT: api/User/{userId}
         [HttpPut("{userId:length(24)}")]
-        public async Task<IActionResult> Update(string userId, UserDetails userDetails)
+        public async Task<IActionResult> UpdateUser(string userId, UserDetails userDetails)
         {
-            var existingUserDetails = await userService.GetUserDetailsByIdAsync(userId);
-            if (existingUserDetails is null)
+            try
             {
-                return NotFound();
+                var updatedUser = await userService.UpdateUserAsync(userId, userDetails);
+                return Ok(updatedUser);// Return the updated user data with a 200 OK status code
             }
-            userDetails.Id = userId; // Ensure that user ID is not modified during update.
-            await userService.UpdateUserAsync(userId, userDetails);
-            return Ok();
+            catch (FluentValidation.ValidationException ex)
+            {
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
 
+        // DELETE: api/User/{userId}
         [HttpDelete("{userId:length(24)}")]
-        public async Task<IActionResult> Delete(string userId)
+        public async Task<IActionResult> DeleteUser(string userId)
         {
-            var userDetails = await userService.GetUserDetailsByIdAsync(userId);
-            if (userDetails is null)
+            try
             {
-                return NotFound();
+                var deleteMessage = await userService.DeleteUserAsync(userId);
+                if (deleteMessage == "User not found.")
+                {
+                    return NotFound(new { Error = "User not found", Message = "The user to be deleted was not found." }); // 404 Not Found
+                }
+
+                return Ok(new { Message = deleteMessage }); // 200 OK with a custom message
             }
-            await userService.DeleteUserAsync(userId);
-            return Ok();
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
 
-        [HttpPost("{userId:length(24)}/activate")]
-        public async Task<IActionResult> Activate(string userId)
+
+        // POST: api/User/SignIn
+        [HttpPost("SignIn")]
+        public async Task<IActionResult> SignInAsync(string nic, string password)
         {
-            await userService.ActivateUserAsync(userId);
-            return Ok();
+            try
+            {
+                var (token, userDetails) = await userService.SignInAsync(nic, password);
+                if (token == null)
+                {
+                    return Unauthorized(new { Error = "Authentication failed", Message = "Invalid NIC or password" }); // 401 Unauthorized
+                }
+
+                return Ok(new { Token = token, UserDetails = userDetails }); // 200 OK with token and user details
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
 
-        [HttpPost("{userId:length(24)}/request-deactivation")]
-        public async Task<IActionResult> RequestDeactivation(string userId)
+        // POST: api/User/SignUp
+        [HttpPost("SignUp")]
+        public async Task<IActionResult> SignUpAsync(UserDetails userDetails)
         {
-            await userService.RequestDeactivationAsync(userId);
-            return Ok();
+            try
+            {
+                await userService.SignUpAsync(userDetails);
+                return CreatedAtAction(nameof(GetUserById), new { userId = userDetails.Id }, userDetails); // 201 Created
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
         }
+
+        // GET: api/User/GetCurrentUser
+        [HttpGet("GetCurrentUser")]
+        public IActionResult GetLoggedInUser()
+        {
+            try
+            {
+                var loggedInUser = userService.GetLoggedInUser();
+                if (loggedInUser == null)
+                {
+                    return Unauthorized(new { Error = "Authentication failed", Message = "User not authenticated or not found" }); // 401 Unauthorized
+                }
+                return Ok(loggedInUser); // 200 OK
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
+        }
+
     }
 }
