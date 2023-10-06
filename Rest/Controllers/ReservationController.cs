@@ -125,7 +125,7 @@ namespace Rest.Controllers
                 // Calculate the total reserved seats excluding the reservation to be updated
                 var totalSeats = existingSchedule.train?.TotalSeats ?? 0;
                 var reservedCount = existingSchedule.reservations?
-                    .Where(r => r.Id != reservationId)
+                    .Where(r => r.Id != reservationId && r.ReservationStatus == "RESERVED")
                     .Sum(r => r.ReservedCount) ?? 0;
 
                 if (reservedCount + updatedReservation.ReservedCount > totalSeats)
