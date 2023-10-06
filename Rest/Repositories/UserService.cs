@@ -117,6 +117,23 @@ namespace Rest.Repositories
                         // Encrypt the password before storing it.
                         userDetails.Password = BCrypt.Net.BCrypt.HashPassword(userDetails.Password);
 
+                        // Retrieve the current user (assuming you have a way to identify the current user, such as from claims).
+                        var currentUser = GetLoggedInUser();
+
+                        if (currentUser == null)
+                        {
+                            throw new Exception("Current user not found.");
+                        }
+
+                        // Get the ID of the currently logged-in user or an appropriate source for createdBy.
+                        string createdBy = currentUser.Id; // Replace with actual logic to obtain the user's ID
+
+                        // Set createdBy, updatedBy, createdOn, and updatedOn fields.
+                        userDetails.CreatedBy = createdBy;
+                        userDetails.UpdatedBy = createdBy;
+                        userDetails.CreatedOn = DateTime.UtcNow;
+                        userDetails.UpdatedOn = userDetails.CreatedOn;
+
                         // Implement user creation logic here.
                         await userCollection.InsertOneAsync(userDetails);
                     }
@@ -145,7 +162,8 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-        public async Task UpdateUserAsync(string userId, UserDetails userDetails)
+
+        public async Task<UserDetails> UpdateUserAsync(string userId, UserDetails userDetails)
         {
             try
             {
@@ -162,8 +180,17 @@ namespace Rest.Repositories
                 // Ensure that user ID is not modified during update.
                 userDetails.Id = userId;
 
-                // Set updated timestamp.
+                // Retrieve the current user (assuming you have a way to identify the current user, such as from claims).
+                var currentUser = GetLoggedInUser();
+
+                if (currentUser == null)
+                {
+                    throw new Exception("Current user not found.");
+                }
+
+                // Set updated timestamp and updated by fields.
                 userDetails.UpdatedOn = DateTime.UtcNow;
+                userDetails.UpdatedBy = currentUser.Id;
 
                 // Check if NIC (used as email) is unique before updating the user.
                 if (await IsNicUniqueForUpdate(userId, userDetails.NIC))
@@ -171,8 +198,22 @@ namespace Rest.Repositories
                     // Check if the email is unique before updating the user.
                     if (await IsEmailUniqueForUpdate(userId, userDetails.Email))
                     {
+                        // Exclude NIC and Password fields from update.
+                        var updateDefinition = Builders<UserDetails>.Update
+                            .Set(u => u.FirstName, userDetails.FirstName)
+                            .Set(u => u.LastName, userDetails.LastName)
+                            .Set(u => u.UserType, userDetails.UserType)
+                            .Set(u => u.Status, userDetails.Status)
+                            .Set(u => u.IsActive, userDetails.IsActive)
+                            .Set(u => u.UpdatedOn, userDetails.UpdatedOn)
+                            .Set(u => u.UpdatedBy, userDetails.UpdatedBy);
+
                         // Implement user update logic here.
-                        await userCollection.ReplaceOneAsync(x => x.Id == userId, userDetails);
+                        await userCollection.UpdateOneAsync(u => u.Id == userId, updateDefinition);
+
+                        // Fetch and return the updated user details.
+                        var updatedUser = await userCollection.Find(u => u.Id == userId).FirstOrDefaultAsync();
+                        return updatedUser;
                     }
                     else
                     {
@@ -199,7 +240,7 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-        public async Task DeleteUserAsync(string userId)
+        public async Task<string> DeleteUserAsync(string userId)
         {
             try
             {
@@ -208,12 +249,13 @@ namespace Rest.Repositories
                 if (existingUser == null)
                 {
                     // Handle the case where the user does not exist.
-                    // Return an appropriate response indicating that the user was not found.
-                    throw new Exception("User not found.");
+                    return "User not found."; // Return a custom message
                 }
 
                 // Implement user deletion logic here.
                 await userCollection.DeleteOneAsync(x => x.Id == userId);
+
+                return "User deleted successfully."; // Return a custom message upon successful deletion
             }
             catch (Exception ex)
             {
@@ -234,7 +276,7 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-        public async Task<string> SignInAsync(string nic, string password)
+        public async Task<(string Token, UserDetails UserDetails)> SignInAsync(string nic, string password)
         {
             try
             {
@@ -243,16 +285,14 @@ namespace Rest.Repositories
                 if (existingUser == null)
                 {
                     // Handle the case where the user does not exist.
-                    // Return an appropriate response indicating that the user was not found.
-                    throw new Exception("User not found.");
+                    return (null, null); // Return null values if user not found
                 }
 
                 // Verify the password using BCrypt.
                 if (!BCrypt.Net.BCrypt.Verify(password, existingUser.Password))
                 {
                     // Handle the case where the password is incorrect.
-                    // Return an appropriate response indicating authentication failure.
-                    throw new Exception("Authentication failed. Incorrect password.");
+                    return (null, null); // Return null values if authentication failed
                 }
 
                 // Create claims for the JWT token.
@@ -277,7 +317,7 @@ namespace Rest.Repositories
                 // Serialize the token to a string.
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return tokenString;
+                return (tokenString, existingUser); // Return the token and user details upon successful sign-in
             }
             catch (Exception ex)
             {
