@@ -149,3 +149,15 @@ C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\n
 C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Tokens.dll
 C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\JanithGamage\Desktop\EAD\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.Security.Permissions.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\package-lock.json
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\BCrypt.Net-Next.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\FluentValidation.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Abstractions.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.JsonWebTokens.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Logging.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\Microsoft.IdentityModel.Tokens.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.IdentityModel.Tokens.Jwt.dll
+E:\SLIIT\Year_4\Y4S2\EAD\Assignment\Project\EAD-2023-Y4S2-Backend\Rest\bin\Debug\net7.0\System.Security.Permissions.dll
