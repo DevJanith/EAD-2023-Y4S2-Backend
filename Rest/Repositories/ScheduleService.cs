@@ -100,8 +100,15 @@ namespace Rest.Repositories
 
         public async Task<List<Schedule>> GetSchedulesByStatusAsync(string status)
         {
-            // Assuming you have a collection of schedules named 'schedules'
-            var filter = Builders<Schedule>.Filter.Eq(x => x.Status, status);
+            // Get the current time
+            DateTime currentTime = DateTime.Now;
+
+            var filter = Builders<Schedule>.Filter.And(
+                Builders<Schedule>.Filter.Eq(x => x.Status, status),
+                Builders<Schedule>.Filter.Gte(x => x.StartDatetime, currentTime)
+            );
+
+
             var schedules = await scheduleCollection.Find(filter).ToListAsync();
 
             return schedules;
