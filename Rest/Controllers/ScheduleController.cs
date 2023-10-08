@@ -26,13 +26,14 @@ namespace Rest.Controllers
             this.scheduleService = scheduleService;
             this.trainService = trainService;
         }
-
+        // Get all Schedules
         [HttpGet]
         public async Task<List<Schedule>> Get()
         {
             return await scheduleService.ScheduleListAsync();
         }
-
+        
+        // Get all Schedule by ID
         [HttpGet("{scheduleId:length(24)}")]
         public async Task<ActionResult<Schedule>> Get(string scheduleId)
         {
@@ -43,7 +44,8 @@ namespace Rest.Controllers
             }
             return scheduleDetails;
         }
-
+       
+        // Create new Schedule
         [HttpPost]
         public async Task<IActionResult> Post(Schedule scheduleDetails)
         {
@@ -51,6 +53,7 @@ namespace Rest.Controllers
             return CreatedAtAction(nameof(Get), new { id = scheduleDetails.Id }, scheduleDetails);
         }
 
+        // Update existing Schedule
         [HttpPut("{scheduleId:length(24)}")]
         public async Task<IActionResult> Update(string scheduleId, Schedule scheduleDetails)
         {
@@ -64,6 +67,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Delete Schedule by ID
         [HttpDelete("{scheduleId:length(24)}")]
         public async Task<IActionResult> Delete(string scheduleId)
         {
@@ -76,6 +80,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Get Incoming Schedules by Status
         [HttpGet("getSchedulesByStatus/{status}")]
         public async Task<IActionResult> GetSchedulesByStatus(string status)
         {
@@ -98,6 +103,7 @@ namespace Rest.Controllers
             }
         }
 
+        // Get all incoming Schedules
         [HttpGet("getIncomingSchedules")]
         public async Task<IActionResult> GetIncomingSchedules()
         {
@@ -120,6 +126,7 @@ namespace Rest.Controllers
             }
         }
 
+        // Add new Tarin to Schedule
         [HttpPost("addTrainToSchedule/{scheduleId:length(24)}/{trainId:length(24)}")]
         public async Task<IActionResult> AddTrainToSchedule(string scheduleId, string trainId)
         {

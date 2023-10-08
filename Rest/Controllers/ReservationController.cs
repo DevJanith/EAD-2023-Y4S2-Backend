@@ -26,13 +26,14 @@ namespace Rest.Controllers
             this.reservationService = reservationService;
             this.scheduleService = scheduleService;
         }
-
+        // Get all Reservations
         [HttpGet]
         public async Task<List<Reservation>> Get()
         {
             return await reservationService.ReservationListAsync();
         }
 
+        // Get one Reservation By ID
         [HttpGet("{reservationId:length(24)}")]
         public async Task<ActionResult<Reservation>> Get(string reservationId)
         {
@@ -44,6 +45,7 @@ namespace Rest.Controllers
             return reservationDetails;
         }
 
+        // Create new Reservation
         [HttpPost]
         public async Task<IActionResult> Post(Reservation reservationDetails)
         {
@@ -51,6 +53,7 @@ namespace Rest.Controllers
             return CreatedAtAction(nameof(Get), new { id = reservationDetails.Id }, reservationDetails);
         }
 
+        // Update existing Reservation by ID
         [HttpPut("{reservationId:length(24)}")]
         public async Task<IActionResult> Update(string reservationId, Reservation reservationDetails)
         {
@@ -64,6 +67,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Delete Reservation by ID
         [HttpDelete("{reservationId:length(24)}")]
         public async Task<IActionResult> Delete(string reservationId)
         {
@@ -76,6 +80,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Create new Reservation for Existing Schedule
         [HttpPost("createForSchedule/{scheduleId:length(24)}")]
         public async Task<IActionResult> CreateReservationForSchedule(string scheduleId, Reservation reservation)
         {
@@ -88,7 +93,6 @@ namespace Rest.Controllers
                     return NotFound("Schedule not found.");
                 }
 
-                // Perform any validation checks on the reservation object if needed
 
                 // Create the reservation
                 await scheduleService.AddReservationToScheduleAsync(scheduleId, reservation);
@@ -110,7 +114,7 @@ namespace Rest.Controllers
             }
         }
 
-
+        // Update Reservation in existing schedule
         [HttpPut("updateReservationForSchedule/{scheduleId:length(24)}/{reservationId:length(24)}")]
         public async Task<IActionResult> UpdateReservationForSchedule(string scheduleId, string reservationId, Reservation updatedReservation)
         {
@@ -177,7 +181,7 @@ namespace Rest.Controllers
 
 
 
-
+        // Get shcedules reserved by user ID
         [HttpGet("getSchedulesByUserId/{userId}")]
         public async Task<IActionResult> GetSchedulesByUserId(string userId)
         {
@@ -210,7 +214,7 @@ namespace Rest.Controllers
             }
         }
 
-
+        // Get Reservations by User ID
         [HttpGet("getReservationsByUserId/{userId}")]
         public async Task<IActionResult> GetReservationsByUserId(string userId)
         {
@@ -233,7 +237,7 @@ namespace Rest.Controllers
             }
         }
 
-
+        // Get Reservations By Status
         [HttpGet("getReservationsByStatus/{status}")]
         public async Task<IActionResult> GetReservationsByStatus(string status)
         {
