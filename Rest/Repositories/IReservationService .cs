@@ -1,4 +1,12 @@
-﻿using Rest.Entities;
+﻿/*
+ * Filename: IReservationService.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: This interface include all the methods that should be implelemented in ReservationService
+ */
+
+
+using Rest.Entities;
 using Rest.Models;
 
 namespace Rest.Repositories
