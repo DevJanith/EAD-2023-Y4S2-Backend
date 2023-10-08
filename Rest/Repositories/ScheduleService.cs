@@ -70,7 +70,9 @@ namespace Rest.Repositories
             }
 
             var totalSeats = existingSchedule.train?.TotalSeats ?? 0;
-            var reservedCount = existingSchedule.reservations?.Sum(r => r.ReservedCount) ?? 0;
+            var reservedCount = existingSchedule.reservations?
+                .Where(r => r.ReservationStatus == "RESERVED")
+                .Sum(r => r.ReservedCount) ?? 0;
 
             if (reservedCount + reservation.ReservedCount > totalSeats)
             {
