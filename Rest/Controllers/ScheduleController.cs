@@ -89,6 +89,28 @@ namespace Rest.Controllers
             }
         }
 
+        [HttpGet("getIncomingSchedules")]
+        public async Task<IActionResult> GetIncomingSchedules()
+        {
+            try
+            {
+                // Call your schedule service to get schedules by status
+                var schedules = await scheduleService.GetIncomingSchedules();
+
+                if (schedules == null || schedules.Count == 0)
+                {
+                    return NotFound("No schedules found.");
+                }
+
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
         [HttpPost("addTrainToSchedule/{scheduleId:length(24)}/{trainId:length(24)}")]
         public async Task<IActionResult> AddTrainToSchedule(string scheduleId, string trainId)
         {

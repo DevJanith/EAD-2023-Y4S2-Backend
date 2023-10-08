@@ -113,5 +113,21 @@ namespace Rest.Repositories
 
             return schedules;
         }
+
+
+        public async Task<List<Schedule>> GetIncomingSchedules()
+        {
+            // Get the current time
+            DateTime currentTime = DateTime.Now;
+
+            var filter = Builders<Schedule>.Filter.And(
+                Builders<Schedule>.Filter.Gte(x => x.StartDatetime, currentTime)
+            );
+
+
+            var schedules = await scheduleCollection.Find(filter).ToListAsync();
+
+            return schedules;
+        }
     }
 }
