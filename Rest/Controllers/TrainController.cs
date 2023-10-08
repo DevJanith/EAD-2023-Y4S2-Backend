@@ -1,4 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*
+ * Filename: TrainController.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: This C# file contains the implementation of the TrainController class, which
+ *              handles HTTP requests related to reservations in the REST API.
+ */
+
+using Microsoft.AspNetCore.Mvc;
 using Rest.Entities;
 using Rest.Models;
 using Rest.Repositories;
@@ -12,12 +20,14 @@ namespace Rest.Controllers
         private readonly ITrainService trainService;
         public TrainController(ITrainService trainService) => this.trainService = trainService;
 
+        // Get All Trains
         [HttpGet]
         public async Task<List<Train>> Get()
         {
             return await trainService.TrainListAsync();
         }
 
+        // Get one Train
         [HttpGet("{trainId:length(24)}")]
         public async Task<ActionResult<Train>> Get(string trainId)
         {
@@ -29,6 +39,7 @@ namespace Rest.Controllers
             return trainDetails;
         }
 
+        // Create new Train
         [HttpPost]
         public async Task<IActionResult> Post(Train trainDetails)
         {
@@ -39,6 +50,7 @@ namespace Rest.Controllers
             }, trainDetails);
         }
 
+        // Update existing Train
         [HttpPut("{trainId:length(24)}")]
         public async Task<IActionResult> Update(string trainId, Train trainDetails)
         {
@@ -52,6 +64,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Delete Train By ID
         [HttpDelete("{trainId:length(24)}")]
         public async Task<IActionResult> Delete(string trainId)
         {

@@ -1,4 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*
+ * Filename: ScheduleController.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: This C# file contains the implementation of the ScheduleController class, which
+ *              handles HTTP requests related to reservations in the REST API.
+ */
+
+
+using Microsoft.AspNetCore.Mvc;
 using Rest.Entities;
 using Rest.Models;
 using Rest.Repositories;
@@ -17,13 +26,14 @@ namespace Rest.Controllers
             this.scheduleService = scheduleService;
             this.trainService = trainService;
         }
-
+        // Get all Schedules
         [HttpGet]
         public async Task<List<Schedule>> Get()
         {
             return await scheduleService.ScheduleListAsync();
         }
-
+        
+        // Get all Schedule by ID
         [HttpGet("{scheduleId:length(24)}")]
         public async Task<ActionResult<Schedule>> Get(string scheduleId)
         {
@@ -34,7 +44,8 @@ namespace Rest.Controllers
             }
             return scheduleDetails;
         }
-
+       
+        // Create new Schedule
         [HttpPost]
         public async Task<IActionResult> Post(Schedule scheduleDetails)
         {
@@ -42,6 +53,7 @@ namespace Rest.Controllers
             return CreatedAtAction(nameof(Get), new { id = scheduleDetails.Id }, scheduleDetails);
         }
 
+        // Update existing Schedule
         [HttpPut("{scheduleId:length(24)}")]
         public async Task<IActionResult> Update(string scheduleId, Schedule scheduleDetails)
         {
@@ -55,6 +67,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Delete Schedule by ID
         [HttpDelete("{scheduleId:length(24)}")]
         public async Task<IActionResult> Delete(string scheduleId)
         {
@@ -67,6 +80,7 @@ namespace Rest.Controllers
             return Ok();
         }
 
+        // Get Incoming Schedules by Status
         [HttpGet("getSchedulesByStatus/{status}")]
         public async Task<IActionResult> GetSchedulesByStatus(string status)
         {
@@ -89,6 +103,30 @@ namespace Rest.Controllers
             }
         }
 
+        // Get all incoming Schedules
+        [HttpGet("getIncomingSchedules")]
+        public async Task<IActionResult> GetIncomingSchedules()
+        {
+            try
+            {
+                // Call your schedule service to get schedules by status
+                var schedules = await scheduleService.GetIncomingSchedules();
+
+                if (schedules == null || schedules.Count == 0)
+                {
+                    return NotFound("No schedules found.");
+                }
+
+                return Ok(schedules);
+            }
+            catch (Exception ex)
+            {
+                // Handle any exceptions
+                return StatusCode(500, "An error occurred while processing the request.");
+            }
+        }
+
+        // Add new Tarin to Schedule
         [HttpPost("addTrainToSchedule/{scheduleId:length(24)}/{trainId:length(24)}")]
         public async Task<IActionResult> AddTrainToSchedule(string scheduleId, string trainId)
         {
