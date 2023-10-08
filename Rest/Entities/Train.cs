@@ -1,4 +1,11 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿/*
+ * Filename: Train.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: Model class for Train document
+ */
+
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 
 namespace Rest.Models

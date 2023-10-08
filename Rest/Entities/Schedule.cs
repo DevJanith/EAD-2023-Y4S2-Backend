@@ -1,4 +1,12 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿/*
+ * Filename: Schedule.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: Model class for Schedule document
+ */
+
+
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 
 namespace Rest.Models

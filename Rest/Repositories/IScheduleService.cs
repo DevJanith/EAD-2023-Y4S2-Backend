@@ -1,4 +1,13 @@
-﻿using Rest.Entities;
+﻿/*
+ * Filename: IScheduleService.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: This interface include all the methods that should be implelemented in ScheduleService
+ */
+
+
+
+using Rest.Entities;
 using Rest.Models;
 
 namespace Rest.Repositories
