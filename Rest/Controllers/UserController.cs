@@ -19,11 +19,13 @@ namespace Rest.Controllers
 
         // GET: api/User
         [HttpGet]
-        public async Task<IActionResult> GetUsersAsync(int page, int perPage, string direction, Status? status, UserType? userType, bool? isActive)
+        public async Task<IActionResult> GetUsersAsync(int page, int perPage, string direction, Status? status, string userTypes, bool? isActive)
         {
             try
             {
-                var (users, total) = await userService.GetUsersAsync(page, perPage, direction, status, userType, isActive);
+                List<UserType> userTypeList = ParseUserTypes(userTypes);
+
+                var (users, total) = await userService.GetUsersAsync(page, perPage, direction, status, userTypeList, isActive);
                 var result = new
                 {
                     Users = users,
@@ -118,17 +120,32 @@ namespace Rest.Controllers
             }
         }
 
-
         // POST: api/User/SignIn
         [HttpPost("SignIn")]
-        public async Task<IActionResult> SignInAsync(string nic, string password)
+        public async Task<IActionResult> SignInAsync(SignInModel signInModel)
         {
             try
             {
-                var (token, userDetails) = await userService.SignInAsync(nic, password);
-                if (token == null)
+                var (token, userDetails, validUser, stage, desc) = await userService.SignInAsync(signInModel.NIC, signInModel.Password);
+                if (!validUser)
                 {
-                    return Unauthorized(new { Error = "Authentication failed", Message = "Invalid NIC or password" }); // 401 Unauthorized
+                    switch (stage)
+                    {
+                        case "UserExistingValidation":
+                            return Unauthorized(new { Error = "Authentication failed", Message = desc }); // 401 Unauthorized 
+
+                        case "UserPasswordValidation":
+                            return Unauthorized(new { Error = "Authentication failed", Message = desc }); // 401 Unauthorized 
+
+                        case "UserIsACtiveValidation":
+                            return Unauthorized(new { Error = "Authentication failed", Message = desc }); // 401 Unauthorized 
+
+                        case "UserStatusValidation":
+                            return Unauthorized(new { Error = "Authentication failed", Message = desc }); // 401 Unauthorized 
+
+                        default:
+                            return Unauthorized(new { Error = "Authentication failed", Message = "Invalid user" }); // 401 Unauthorized 
+                    } 
                 }
 
                 return Ok(new { Token = token, UserDetails = userDetails }); // 200 OK with token and user details
@@ -175,6 +192,32 @@ namespace Rest.Controllers
             {
                 return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
             }
+        }
+
+        public class SignInModel
+        {
+            public string NIC { get; set; }
+            public string Password { get; set; }
+        }
+        private List<UserType> ParseUserTypes(string userTypes)
+        {
+            if (string.IsNullOrEmpty(userTypes))
+            {
+                return Enum.GetValues(typeof(UserType)).Cast<UserType>().ToList();
+            }
+
+            var userTypeList = new List<UserType>();
+            var userTypeStrings = userTypes.Split(',').Select(s => s.Trim());
+
+            foreach (var userTypeString in userTypeStrings)
+            {
+                if (Enum.TryParse(userTypeString, true, out UserType userType))
+                {
+                    userTypeList.Add(userType);
+                }
+            }
+
+            return userTypeList;
         }
 
     }
