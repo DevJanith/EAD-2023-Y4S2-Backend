@@ -1,4 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*
+ * Filename: ReservationController.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: This C# file contains the implementation of the ReservationController class, which
+ *              handles HTTP requests related to reservations in the REST API.
+ */
+
+using Microsoft.AspNetCore.Mvc;
 using Rest.Entities;
 using Rest.Models;
 using Rest.Repositories;

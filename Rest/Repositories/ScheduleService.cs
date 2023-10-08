@@ -1,4 +1,13 @@
-﻿using Microsoft.Extensions.Options;
+﻿/*
+ * Filename: ScheduleService.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: Include backend logic implementation for all the ScheduleService methods.
+ */
+
+
+
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Rest.Configurations;
 using Rest.Entities;

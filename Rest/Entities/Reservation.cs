@@ -1,4 +1,12 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿/*
+ * Filename: Reservation.cs
+ * Author: Supun Dileepa
+ * Date: October 8, 2023
+ * Description: Model class for Reservation document
+ */
+
+
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using Microsoft.VisualBasic;
 
