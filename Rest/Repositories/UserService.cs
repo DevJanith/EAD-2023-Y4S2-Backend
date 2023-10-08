@@ -31,7 +31,7 @@ namespace Rest.Repositories
             this.jwtSettings = jwtSettings.Value;
             this.httpContextAccessor = httpContextAccessor;
         }
-        public async Task<(List<UserDetails> Users, int Total)> GetUsersAsync(int page, int perPage, string direction, Status? status, UserType? userType, bool? isActive)
+        public async Task<(List<UserDetails> Users, int Total)> GetUsersAsync(int page, int perPage, string direction, Status? status, List<UserType> userTypes, bool? isActive)
         {
             try
             {
@@ -50,9 +50,9 @@ namespace Rest.Repositories
                     filters.Add(filterBuilder.Eq(u => u.Status, status.Value));
                 }
 
-                if (userType.HasValue)
+                if (userTypes != null && userTypes.Any())
                 {
-                    filters.Add(filterBuilder.Eq(u => u.UserType, userType.Value));
+                    filters.Add(filterBuilder.In(u => u.UserType, userTypes));
                 }
 
                 if (isActive.HasValue)
@@ -133,6 +133,7 @@ namespace Rest.Repositories
                         userDetails.UpdatedBy = createdBy;
                         userDetails.CreatedOn = DateTime.UtcNow;
                         userDetails.UpdatedOn = userDetails.CreatedOn;
+                        userDetails.IsSysGenPassword = true;
 
                         // Implement user creation logic here.
                         await userCollection.InsertOneAsync(userDetails);
@@ -162,7 +163,6 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-
         public async Task<UserDetails> UpdateUserAsync(string userId, UserDetails userDetails)
         {
             try
@@ -276,7 +276,7 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-        public async Task<(string Token, UserDetails UserDetails)> SignInAsync(string nic, string password)
+        public async Task<(string Token, UserDetails UserDetails, bool validUser, string stage, string desc)> SignInAsync(string nic, string password)
         {
             try
             {
@@ -285,15 +285,104 @@ namespace Rest.Repositories
                 if (existingUser == null)
                 {
                     // Handle the case where the user does not exist.
-                    return (null, null); // Return null values if user not found
+                    return (null, null, false, "UserExistingValidation" ,"User Does Not Exist"); // Return null values if user not found
                 }
 
                 // Verify the password using BCrypt.
                 if (!BCrypt.Net.BCrypt.Verify(password, existingUser.Password))
                 {
                     // Handle the case where the password is incorrect.
-                    return (null, null); // Return null values if authentication failed
+                    return (null, null, false, "UserPasswordValidation", "User Password Invalid"); // Return null values if authentication failed
                 }
+
+                // Assuming existingUser is an instance of UserDetails class
+                switch (existingUser.UserType)
+                {
+                    case UserType.Admin:
+                        // For Admin, isActive should be true and status should be Default (0) to continue.
+                        if (existingUser.IsActive && existingUser.Status == Status.Default)
+                        {
+                            // Validation passed for Admin user.
+                        }
+                        else if (existingUser.Status == Status.Deleted)
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Is Deleted");
+                        }
+                        else if (!existingUser.IsActive)
+                        {
+                            return (null, null, false, "UserIsACtiveValidation", "User Is In-Active");
+                        }
+                        else
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Status is not Default");
+                        }
+                        break;
+
+                    case UserType.BackOffice:
+                        // For BackOffice, isActive should be true and status should be Default (0) continue.
+                        if (existingUser.IsActive && existingUser.Status == Status.Default)
+                        {
+                            // Validation passed for BackOffice user.
+                        }
+                        else if (existingUser.Status == Status.Deleted)
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Is Deleted");
+                        }
+                        else if (!existingUser.IsActive)
+                        {
+                            return (null, null, false, "UserIsACtiveValidation", "User Is In-Active");
+                        }
+                        else
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Status is not Default");
+                        }
+                        break;
+
+                    case UserType.TravelAgent:
+                        // For TravelAgent, isActive should be true and status should be Approved (2) to continue.
+                        if (existingUser.IsActive && existingUser.Status == Status.Approved)
+                        {
+                            // Validation passed for TravelAgent user.
+                        }
+                        else if (existingUser.Status == Status.Deleted)
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Is Deleted");
+                        }
+                        else if (!existingUser.IsActive)
+                        {
+                            return (null, null, false, "UserIsACtiveValidation", "User Is In-Active");
+                        }
+                        else
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Status is not Approved");
+                        }
+                        break;
+
+                    case UserType.User:
+                        // For User, isActive should be true and status should be Default (0) || Approved (2) to continue.
+                        if (existingUser.IsActive && existingUser.Status == Status.Default)
+                        {
+                            // Validation passed for User.
+                        }
+                        else if (existingUser.Status == Status.Deleted)
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Is Deleted");
+                        }
+                        else if (!existingUser.IsActive)
+                        {
+                            return (null, null, false, "UserIsACtiveValidation", "User Is In-Active");
+                        }
+                        else
+                        {
+                            return (null, null, false, "UserStatusValidation", "User Status is not Default");
+                        }
+                        break;
+
+                    default:
+                        // Handle any other user types here, if needed.
+                        break;
+                }
+
 
                 // Create claims for the JWT token.
                 var claims = new[]
@@ -317,7 +406,7 @@ namespace Rest.Repositories
                 // Serialize the token to a string.
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return (tokenString, existingUser); // Return the token and user details upon successful sign-in
+                return (tokenString, existingUser,  true, "", ""); // Return the token and user details upon successful sign-in
             }
             catch (Exception ex)
             {
@@ -346,7 +435,34 @@ namespace Rest.Repositories
                     if (await IsEmailUnique(userDetails.Email))
                     {
                         // Encrypt the password before storing it.
-                        userDetails.Password = BCrypt.Net.BCrypt.HashPassword(userDetails.Password);
+                        userDetails.Password = BCrypt.Net.BCrypt.HashPassword(userDetails.Password); 
+
+                        // Set the default status and isActive based on userType.
+                        switch (userDetails.UserType)
+                        {
+                            case UserType.Admin:
+                                userDetails.Status = Status.Default;
+                                userDetails.IsActive = true;
+                                break;
+                            case UserType.BackOffice:
+                                userDetails.Status = Status.Default;
+                                userDetails.IsActive = true;
+                                break;
+                            case UserType.TravelAgent:
+                                userDetails.Status = Status.New;
+                                userDetails.IsActive = false;
+                                break;
+                            case UserType.User:
+                                userDetails.Status = Status.Default;
+                                userDetails.IsActive = true;
+                                break;
+                            default:
+                                userDetails.Status = Status.Default;
+                                userDetails.IsActive = true;
+                                break;
+                        }
+
+                        userDetails.IsSysGenPassword = false;
 
                         // Implement user creation logic here.
                         await userCollection.InsertOneAsync(userDetails);
@@ -414,7 +530,6 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
-
         private async Task<bool> IsNicUnique(string nic)
         {
             try

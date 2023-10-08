@@ -37,6 +37,9 @@ namespace Rest.Entities
         [BsonElement("IsActive")]
         public bool IsActive { get; set; }
 
+        [BsonElement("IsSysGenPassword")]
+        public bool IsSysGenPassword { get; set; }
+
         [BsonElement("Password")]
         public string? Password { get; set; }
 
