@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: UserDetails.cs
  * Author: Janith Gamage
+ * ID Number : IT20402266
  * Date: October 8, 2023
  * Description: Model class for User Details document
  */

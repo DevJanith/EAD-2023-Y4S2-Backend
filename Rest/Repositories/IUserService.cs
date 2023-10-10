@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: IUserService.cs
  * Author: Janith Gamage
+ * ID Number : IT20402266
  * Date: October 8, 2023
  * Description: This interface include all the methods that should be implelemented in User Details service
  */

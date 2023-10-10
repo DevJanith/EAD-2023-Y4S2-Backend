@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: ScheduleController.cs
- * Author: Supun Dileepa
+ * Author: Himasha Ranaweera
+ * ID Number : IT20251000
  * Date: October 8, 2023
  * Description: This C# file contains the implementation of the ScheduleController class, which
  *              handles HTTP requests related to reservations in the REST API.

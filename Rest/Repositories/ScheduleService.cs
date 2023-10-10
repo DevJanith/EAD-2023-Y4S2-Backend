@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: ScheduleService.cs
- * Author: Supun Dileepa
+ * Author: Himasha Ranaweera
+ * ID Number : IT20251000
  * Date: October 8, 2023
  * Description: Include backend logic implementation for all the ScheduleService methods.
  */
