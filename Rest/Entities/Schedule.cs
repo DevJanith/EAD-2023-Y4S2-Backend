@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: Schedule.cs
- * Author: Supun Dileepa
+ * Author: Himasha Ranaweera
+ * ID Number : IT20251000
  * Date: October 8, 2023
  * Description: Model class for Schedule document
  */

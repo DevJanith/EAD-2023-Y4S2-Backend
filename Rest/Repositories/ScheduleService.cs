@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: ScheduleService.cs
- * Author: Supun Dileepa
+ * Author: Himasha Ranaweera
+ * ID Number : IT20251000
  * Date: October 8, 2023
  * Description: Include backend logic implementation for all the ScheduleService methods.
  */
@@ -134,10 +135,13 @@ namespace Rest.Repositories
             // Get the current time
             DateTime currentTime = DateTime.Now;
 
-            var filter = Builders<Schedule>.Filter.And(
-                Builders<Schedule>.Filter.Gte(x => x.StartDatetime, currentTime)
-            );
+            // Calculate the end date which is 30 days from now
+            DateTime endDate = currentTime.AddDays(30);
 
+            var filter = Builders<Schedule>.Filter.And(
+                Builders<Schedule>.Filter.Gte(x => x.StartDatetime, currentTime),
+                Builders<Schedule>.Filter.Lte(x => x.StartDatetime, endDate)
+            );
 
             var schedules = await scheduleCollection.Find(filter).ToListAsync();
 
