@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: Train.cs
- * Author: Supun Dileepa
+ * Author: Ridma Dilshan
+ * ID Number : IT20005276
  * Date: October 8, 2023
  * Description: Model class for Train document
  */
