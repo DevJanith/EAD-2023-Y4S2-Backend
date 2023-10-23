@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\SLIIT\\Year_4\\Y4S2\\EAD\\Assignment\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {}
+    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {}
   },
   "projects": {
-    "E:\\SLIIT\\Year_4\\Y4S2\\EAD\\Assignment\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {
+    "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\SLIIT\\Year_4\\Y4S2\\EAD\\Assignment\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
+        "projectUniqueName": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
         "projectName": "Rest",
-        "projectPath": "E:\\SLIIT\\Year_4\\Y4S2\\EAD\\Assignment\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
-        "packagesPath": "C:\\Users\\HP Pavilion\\.nuget\\packages\\",
-        "outputPath": "E:\\SLIIT\\Year_4\\Y4S2\\EAD\\Assignment\\Project\\EAD-2023-Y4S2-Backend\\Rest\\obj\\",
+        "projectPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
+        "packagesPath": "C:\\Users\\JanithGamage\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\HP Pavilion\\AppData\\Roaming\\NuGet\\NuGet.Config",
