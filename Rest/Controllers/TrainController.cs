@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: TrainController.cs
- * Author: Supun Dileepa
+ * Author: Ridma Dilshan
+ * ID Number : IT20005276
  * Date: October 8, 2023
  * Description: This C# file contains the implementation of the TrainController class, which
  *              handles HTTP requests related to reservations in the REST API.

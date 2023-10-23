@@ -1,9 +1,10 @@
 ﻿/*
- * Filename: IScheduleService.cs
- * Author: Supun Dileepa
- * Date: October 8, 2023
- * Description: This interface include all the methods that should be implelemented in ScheduleService
- */
+* Filename: IScheduleService.cs
+* Author: Himasha Ranaweera
+* ID Number : IT20251000
+* Date: October 8, 2023
+* Description: This interface include all the methods that should be implelemented in ScheduleService
+*/
 
 
 

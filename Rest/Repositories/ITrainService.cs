@@ -1,6 +1,7 @@
 ﻿/*
  * Filename: ITrainService.cs
- * Author: Supun Dileepa
+ * Author: Ridma Dilshan
+ * ID Number : IT20005276
  * Date: October 8, 2023
  * Description: This interface include all the methods that should be implelemented in TrainService
  */
