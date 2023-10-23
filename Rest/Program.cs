@@ -15,6 +15,7 @@ builder.Services.AddSingleton<ITrainService, TrainService>();
 builder.Services.AddSingleton<IScheduleService, ScheduleService>();
 builder.Services.AddSingleton<IReservationService, ReservationService>();
 builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddSingleton<IUserRequestService, UserRequestService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "4faUhHOdnGevAr4jgYzTjgqIeK2DNNFwgo3/fcqFi2g7gBGcMgweCKikBJnqzYYV6pq+Nz4F1xTj+3DzSuekhQ==",
+  "dgSpecHash": "lpbA0jdrRasxHOCFCrtJ0Eqpd0rQEqY9RNQNsrNel+BUQ0xrKWRCbbF+9ljehuLPTTuyPrEiHsJ4quINK0b1wg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\REST\\Rest.csproj",
+  "projectFilePath": "C:\\Users\\JanithGamage\\Desktop\\EAD\\Project\\EAD-2023-Y4S2-Backend\\Rest\\Rest.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\JanithGamage\\.nuget\\packages\\awssdk.core\\3.7.100.14\\awssdk.core.3.7.100.14.nupkg.sha512",
     "C:\\Users\\JanithGamage\\.nuget\\packages\\awssdk.securitytoken\\3.7.100.14\\awssdk.securitytoken.3.7.100.14.nupkg.sha512",
