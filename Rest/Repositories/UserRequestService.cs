@@ -86,7 +86,7 @@ namespace Rest.Repositories
 
                 // Check if a user request with the given NIC exists.
                 var existingUserRequest = await userRequestCollection.Find(x => x.NIC == userRequest.NIC).FirstOrDefaultAsync();
-                if (existingUserRequest != null)
+                if (existingUserRequest != null && existingUserRequest.Status == "PENDING")
                 {
                     // Handle the case where the user does not exist.
                     return (false, "UserExistingValidation", "User Request Alreay Exist"); // Return null values if user not found
@@ -102,6 +102,7 @@ namespace Rest.Repositories
                 }
 
                 userRequest.Remark = "Request to enable respective user profile";
+                userRequest.Status = "PENDING";
                 userRequest.CreatedOn = DateTime.UtcNow;
                 userRequest.UpdatedOn = userRequest.CreatedOn; 
 
@@ -121,7 +122,61 @@ namespace Rest.Repositories
                 throw ex;
             }
         }
+        public async Task<UserRequest> UpdateUserRequestAsync(string id, UserRequest userRequest)
+        {
+            try
+            { 
+                // Ensure that user ID is not modified during update.
+                userRequest.Id = id;
 
+                // Retrieve the current user (assuming you have a way to identify the current user, such as from claims).
+                var currentUser = GetLoggedInUser();
+
+                if (currentUser == null)
+                {
+                    throw new Exception("Current user not found.");
+                }
+
+                // Set updated timestamp and updated by fields.
+                userRequest.UpdatedOn = DateTime.UtcNow;
+                userRequest.UpdatedBy = currentUser.Id; 
+
+                if(userRequest.Status == "APPROVED")
+                {
+                    // Exclude NIC  fields from update.
+                    var updateDefinitionUserDetails = Builders<UserDetails>.Update
+                       .Set(u => u.IsActive, true)
+                       .Set(u => u.UpdatedOn, userRequest.UpdatedOn)
+                       .Set(u => u.UpdatedBy, userRequest.UpdatedBy);
+
+                    // Implement user update logic here.
+                    await userCollection.UpdateOneAsync(u => u.NIC == userRequest.NIC, updateDefinitionUserDetails);
+                }
+
+                // Exclude NIC  fields from update.
+                var updateDefinition = Builders<UserRequest>.Update  
+                   .Set(u => u.Status, userRequest.Status) 
+                   .Set(u => u.UpdatedOn, userRequest.UpdatedOn)
+                   .Set(u => u.UpdatedBy, userRequest.UpdatedBy);
+
+                 // Implement user update logic here.
+                 await userRequestCollection.UpdateOneAsync(u => u.Id == id, updateDefinition);
+
+                // Fetch and return the updated user details.
+                var updatedUserRequest = await userRequestCollection.Find(u => u.Id == id).FirstOrDefaultAsync();
+                return updatedUserRequest; 
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                // Handle validation errors and return appropriate responses.
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
         public async Task<string> DeleteUserRequestAsync(string id)
         {
             try
@@ -138,6 +193,45 @@ namespace Rest.Repositories
                 await userRequestCollection.DeleteOneAsync(x => x.Id == id);
 
                 return "User request deleted successfully."; // Return a custom message upon successful deletion
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+
+        public UserDetails GetLoggedInUser()
+        {
+            try
+            {
+                // Retrieve the current HTTP context and user identity.
+                var httpContext = httpContextAccessor.HttpContext;
+                var user = httpContext?.User;
+
+                // Check if the user is authenticated.
+                if (user != null && user.Identity.IsAuthenticated)
+                {
+                    // Retrieve the user's NIC (used as email) from the claims.
+                    var nicClaim = user.FindFirst(ClaimTypes.Name);
+
+                    if (nicClaim != null)
+                    {
+                        var nic = nicClaim.Value;
+
+                        // Query the database to get the user based on NIC (email).
+                        var existingUser = userCollection.Find(x => x.NIC == nic).FirstOrDefault();
+
+                        if (existingUser != null)
+                        {
+                            // Return the user details.
+                            return existingUser;
+                        }
+                    }
+                }
+
+                // Handle the case where the user is not authenticated or not found.
+                throw new Exception("User not authenticated or not found.");
             }
             catch (Exception ex)
             {

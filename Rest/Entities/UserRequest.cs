@@ -15,6 +15,9 @@ namespace Rest.Entities
         [BsonElement("Remark")]
         public string? Remark { get; set; }
 
+        [BsonElement("Status")]
+        public string? Status { get; set; }
+
         [BsonElement("CreatedOn")]
         public DateTime CreatedOn { get; set; }
 
