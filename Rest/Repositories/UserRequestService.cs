@@ -84,6 +84,24 @@ namespace Rest.Repositories
                     return (false, "UserExistingValidation", "User Does Not Exist"); // Return null values if user not found
                 }
 
+                // Check if a user request with the given NIC exists.
+                var existingUserRequest = await userRequestCollection.Find(x => x.NIC == userRequest.NIC).FirstOrDefaultAsync();
+                if (existingUserRequest != null)
+                {
+                    // Handle the case where the user does not exist.
+                    return (false, "UserExistingValidation", "User Request Alreay Exist"); // Return null values if user not found
+                }
+
+                if (existingUser.Status == Status.Deleted)
+                {
+                    return ( false, "UserStatusValidation", "User Is Deleted");
+                }
+                else if (existingUser.IsActive)
+                {
+                    return (false, "UserIsACtiveValidation", "User Is Active, Can not request a activation request for already active user");
+                }
+
+                userRequest.Remark = "Request to enable respective user profile";
                 userRequest.CreatedOn = DateTime.UtcNow;
                 userRequest.UpdatedOn = userRequest.CreatedOn; 
 
@@ -102,6 +120,31 @@ namespace Rest.Repositories
                 // Handle other exceptions and return appropriate responses.
                 throw ex;
             }
-        } 
+        }
+
+        public async Task<string> DeleteUserRequestAsync(string id)
+        {
+            try
+            {
+                // Check if the user with the specified ID exists.
+                var existingUserRequest = await userRequestCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+                if (existingUserRequest == null)
+                {
+                    // Handle the case where the user does not exist.
+                    return "User request not found."; // Return a custom message
+                }
+
+                // Implement user deletion logic here.
+                await userRequestCollection.DeleteOneAsync(x => x.Id == id);
+
+                return "User request deleted successfully."; // Return a custom message upon successful deletion
+            }
+            catch (Exception ex)
+            {
+                // Handle other exceptions and return appropriate responses.
+                throw ex;
+            }
+        }
+
     }
 }

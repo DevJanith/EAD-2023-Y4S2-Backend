@@ -10,7 +10,10 @@ namespace Rest.Entities
         public string? Id { get; set; } 
 
         [BsonElement("NIC")]
-        public string NIC { get; set; } 
+        public string NIC { get; set; }
+
+        [BsonElement("Remark")]
+        public string? Remark { get; set; }
 
         [BsonElement("CreatedOn")]
         public DateTime CreatedOn { get; set; }
