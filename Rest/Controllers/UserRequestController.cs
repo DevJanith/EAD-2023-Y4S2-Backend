@@ -76,6 +76,24 @@ namespace Rest.Controllers
             }
         }
 
+        // PUT: api/UserRequest/{id}
+        [HttpPut("{id:length(24)}")]
+        public async Task<IActionResult> UpdateUserRequest(string id, UserRequest userRequest)
+        {
+            try
+            {
+                var updatedUserRequest = await userRequestService.UpdateUserRequestAsync(id, userRequest);
+                return Ok(updatedUserRequest);// Return the updated user data with a 200 OK status code
+            }
+            catch (FluentValidation.ValidationException ex)
+            {
+                return BadRequest(new { Error = "Validation error", Message = ex.Errors }); // 400 Bad Request
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "Internal server error", Message = ex.Message }); // 500 Internal Server Error
+            }
+        }
 
         // DELETE: api/UserRequest/{id}
         [HttpDelete("{id:length(24)}")]
